@@ -122,8 +122,7 @@ type App() =
     inherit Component<unit, unit>()
     member this.render() =
         R.div [] [
-            unbox "Hello world"
-            R.com<DisplayBox,_,_>()[]
             R.button [OnClick (fun (x: MouseEvent) -> speed <- (speed * 2); if speed > 100 then speed <- 1)][R.str "Faster!"]
             R.button [OnClick (fun (x: MouseEvent) -> unicornBox.Destroy(); unicornBox.Setup())][R.str "Reset"]
+            R.com<DisplayBox,_,_>()[]
             ]
