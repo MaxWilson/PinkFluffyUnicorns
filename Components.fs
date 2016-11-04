@@ -30,15 +30,18 @@ type UnicornBox(canvasContainer: HTMLElement) =
                 TextStyle.Fill (U2.Case1 "#3e1707")
                 TextStyle.Align "center"
                 TextStyle.Stroke (U2.Case1 "#a4410e")
-                TextStyle.StrokeThickness 7.
-                ])
+               ])
         countingText.position.x <- 310.
         countingText.position.y <- canvasContainer.clientHeight
         countingText.anchor.x <- 0.5
         countingText.anchor.y <- 1.
         stage.addChild(countingText) |> ignore
         let pics = System.Collections.Generic.List<_>()
-        let img = Texture.fromImage("Unicorn.png")
+        let imgs = List.map Texture.fromImage [
+                    "BabyUnicorn.jpg"
+                    "NomesDrawing.jpg"
+                    "Vampire.jpg"
+        ]
         let randomColor =
             let colors = [
                 "blue"
@@ -56,39 +59,48 @@ type UnicornBox(canvasContainer: HTMLElement) =
                 colors.[i]
         let randomNeigh =
             let sounds = [
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "Horse1.mp3"
-                    "Horse2.mp3"
-                    "MeowMeowMeowMeow.mp3"
-                ]
+                "BabyUnicorn.m4a"
+                "GhostBoom.m4a"
+                "Horse-hooves-sound.mp3"
+                "I'm a fluffy unicorn.m4a"
+                "blahblahblahblahblah.m4a"
+                "is there a pig.m4a"
+                "little pesnits.m4a"
+                "not like that.m4a"
+                "pooping out butterflies.m4a"
+                "wrongwrongwrpong.m4a"
+              ]
             for s in sounds do
                 Audio.Create(s).load() // pre-load all the sounds
             fun() ->
                 let i = (JS.Math.random() * 1000. |> int) % sounds.Length
                 Audio.Create(sounds.[i]).play()
-        let rec addUnicorn() =
+        let rec addUnicorn(x:float, y:float) =
             let pic = Container()
+            let i = (JS.Math.random() * 1000. |> int) % imgs.Length
+            let img = imgs.[i]
             let p = Sprite(img)
             p.anchor.x <- 0.5
             p.anchor.y <- 0.5
-            let scale = JS.Math.random() + 0.25
+            let scale = 0.1 + JS.Math.random() * 0.15
             pic.addChild(p) |> ignore
             pic.addChild(Text("neigh!",[TextStyle.Align "center"; TextStyle.Font "bold italic 300%"; TextStyle.Fill (U2.Case1 (randomColor()))], position=Point(0., 100.), anchor=Point(0.5, 0.5))) |> ignore
+            pic.position.x <- x
+            pic.position.y <- y
             pic.position.x <- JS.Math.random() * 400.
             pic.position.y <- JS.Math.random() * 400.
             pic.scale <- Point(scale, scale)
             pic?velocity <- scale
             let onclick() =
-              addUnicorn()
               pic?velocity <- (pic?velocity |> unbox<float>) * -1. + (JS.Math.random() * 0.20 - 0.10)
               p.scale.x <- p.scale.x * -1. // flip pic but not text
+              p.scale.x <- p.scale.x * 2.0
+              p.scale.y <- p.scale.y * 2.0
+              if p.scale.y > 100.0 then
+                p.scale.x <- 0.01
+                p.scale.y <- 0.01
+                addUnicorn(p.position.x, p.position.y)
+                addUnicorn(p.position.x, p.position.y)
             pic.on_click (fun e -> onclick()) |> ignore
             pic.on_tap(fun e -> onclick()) |> ignore
             pic.interactive <- true
@@ -97,7 +109,7 @@ type UnicornBox(canvasContainer: HTMLElement) =
             count <- count + 1
             countingText.text <- sprintf "%d little unicorns, running down the field..." count
             randomNeigh()
-        addUnicorn() // add one unicorn to start with
+        addUnicorn(JS.Math.random() * 400.,JS.Math.random() * 400.) // add one unicorn to start with
 
         let rec animate(dt:float) =
             animate_id <- window.requestAnimationFrame(FrameRequestCallback animate)
