@@ -73,7 +73,7 @@ type UnicornBox(canvasContainer: HTMLElement) =
             fun() ->
                 let i = (JS.Math.random() * 1000. |> int) % sounds.Length
                 Audio.Create(sounds.[i]).play()
-        let addUnicorn() =
+        let rec addUnicorn() =
             let pic = Container()
             let p = Sprite(img)
             p.anchor.x <- 0.5
@@ -84,22 +84,29 @@ type UnicornBox(canvasContainer: HTMLElement) =
             pic.position.x <- JS.Math.random() * 400.
             pic.position.y <- JS.Math.random() * 400.
             pic.scale <- Point(scale, scale)
+            pic?velocity <- scale
+            let onclick() =
+              addUnicorn()
+              pic?velocity <- (pic?velocity |> unbox<float>) * -1. + (JS.Math.random() * 0.20 - 0.10)
+              p.scale.x <- p.scale.x * -1. // flip pic but not text
+            pic.on_click (fun e -> onclick()) |> ignore
+            pic.on_tap(fun e -> onclick()) |> ignore
+            pic.interactive <- true
             stage.addChild(pic) |> ignore
             pics.Add(pic)
             count <- count + 1
             countingText.text <- sprintf "%d little unicorns, running down the field..." count
             randomNeigh()
-        stage.interactive <- true
-        stage.on_click (fun e -> addUnicorn()) |> ignore
-        stage.on_tap(fun e -> addUnicorn()) |> ignore
         addUnicorn() // add one unicorn to start with
 
         let rec animate(dt:float) =
             animate_id <- window.requestAnimationFrame(FrameRequestCallback animate)
             for pic in pics do
-                pic.position.x <- (pic.position.x + (float speed * pic.scale.x)) // use scale as a speed constant too, so little horses go slower
-                if pic.position.x > (renderer.view.width + pic.width * 0.5) then
+                pic.position.x <- (pic.position.x + (float speed * (pic?velocity |> unbox))) // use scale as a speed constant too, so little horses go slower
+                if (pic.position.x > (renderer.view.width + pic.width * 0.5)) && (pic?velocity |> unbox<float>) > 0. then // right wrap
                     pic.position.x <- pic.width * -0.5
+                if (pic.position.x < abs pic.width * -0.5) && (pic?velocity |> unbox<float>) < 0. then // left wrap
+                    pic.position.x <- (renderer.view.width + (abs pic.width * 0.5))
             renderer.render(stage)
 
         animate 0. // start a pixi animation loop
