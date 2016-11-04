@@ -69,6 +69,8 @@ type UnicornBox(canvasContainer: HTMLElement) =
                 "not like that.m4a"
                 "pooping out butterflies.m4a"
                 "wrongwrongwrpong.m4a"
+                "pink uns.m4a"
+                "squishy stuff.m4a"
               ]
             for s in sounds do
                 Audio.Create(s).load() // pre-load all the sounds
